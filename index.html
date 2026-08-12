@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#7C4DFF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Budget" />
+  <title>Budget</title>
+  <style>
+    :root {
+      --bg: #fff9f4;
+      --surface: #ffffff;
+      --surface-2: #f5f2f9;
+      --border: #eae6f0;
+      --text: #1e1b2e;
+      --text-2: #6e6a7e;
+      --muted: #a49fb3;
+      --primary: #7c4dff;
+      --primary-deep: #5b2fb6;
+      --primary-soft: #ede7ff;
+      --on-primary: #ffffff;
+      --green: #3ca86b;
+      --pink: #e5578a;
+      --blue: #3f86e0;
+      --amber: #d9971a;
+      --shadow: 0 10px 30px rgba(124, 77, 255, 0.14);
+      --radius: 22px;
+      --radius-sm: 14px;
+    }
+    :root[data-theme="dark"] {
+      --bg: #121017;
+      --surface: #1e1b2e;
+      --surface-2: #2a2740;
+      --border: #2f2b40;
+      --text: #f4f2fb;
+      --text-2: #b8b3c7;
+      --muted: #6e6a7e;
+      --primary: #9a75ff;
+      --primary-deep: #b9a0ff;
+      --primary-soft: #2c2547;
+      --on-primary: #ffffff;
+      --green: #63c98d;
+      --pink: #ff8fb6;
+      --blue: #6facff;
+      --amber: #f0b74a;
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #121017; --surface: #1e1b2e; --surface-2: #2a2740; --border: #2f2b40;
+        --text: #f4f2fb; --text-2: #b8b3c7; --muted: #6e6a7e; --primary: #9a75ff;
+        --primary-deep: #b9a0ff; --primary-soft: #2c2547; --on-primary: #ffffff;
+        --green: #63c98d; --pink: #ff8fb6; --blue: #6facff; --amber: #f0b74a;
+        --shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.4;
+    }
+    .wrap {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 20px 16px calc(48px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    header h1 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
+    .theme-btn {
+      border: none; background: var(--surface); color: var(--text);
+      width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
+      box-shadow: var(--shadow); font-size: 18px; display: grid; place-items: center;
+    }
+
+    .tabs {
+      display: flex; gap: 4px; padding: 4px; margin-bottom: 20px;
+      background: var(--surface); border-radius: 999px; box-shadow: var(--shadow);
+    }
+    .tabs button {
+      flex: 1; border: none; background: transparent; color: var(--text-2);
+      padding: 10px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 600;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tabs button[aria-selected="true"] { background: var(--primary); color: var(--on-primary); }
+
+    .card {
+      background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 18px; margin-bottom: 14px;
+    }
+    .stack > * + * { margin-top: 14px; }
+    .hidden { display: none !important; }
+
+    /* Balance hero */
+    .hero { background: var(--primary); color: var(--on-primary); }
+    .hero .eyebrow { display: flex; align-items: center; justify-content: space-between; }
+    .hero .eyebrow span { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; opacity: 0.85; }
+    .hero .tag {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+      background: rgba(255,255,255,0.22); padding: 3px 9px; border-radius: 999px;
+    }
+    .hero .amount {
+      width: 100%; background: transparent; border: none; color: var(--on-primary);
+      font-size: 42px; font-weight: 800; letter-spacing: -0.02em; padding: 4px 0 2px;
+      border-bottom: 2px solid transparent; outline: none; font-family: inherit;
+    }
+    .hero .amount:focus { border-bottom-color: rgba(255,255,255,0.55); }
+    .hero button.amount { text-align: left; cursor: pointer; display: block; }
+    .hero button.amount.empty { font-size: 20px; font-weight: 600; opacity: 0.75; }
+    .hero .asof { font-size: 12px; opacity: 0.8; }
+
+    /* Commentary */
+    .commentary { border-left: 4px solid var(--primary); }
+    .commentary.warn { border-left-color: var(--pink); }
+    .commentary.tight { border-left-color: var(--amber); }
+    .commentary.good { border-left-color: var(--green); }
+    .commentary .head { font-size: 19px; font-weight: 800; margin: 0 0 6px; }
+    .commentary .body { color: var(--text-2); font-size: 15px; margin: 0; }
+
+    .section-label {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.09em; color: var(--muted);
+      text-transform: uppercase; margin: 4px 4px 8px; display: flex; justify-content: space-between;
+    }
+
+    /* Upcoming timeline */
+    .upcoming .row {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .upcoming .row:last-child { border-bottom: none; }
+    .chip {
+      width: 34px; height: 34px; border-radius: 999px; background: var(--surface-2);
+      display: grid; place-items: center; font-size: 16px; flex-shrink: 0;
+    }
+    .grow { flex: 1; min-width: 0; }
+    .row .label { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .row .sub { font-size: 12px; color: var(--text-2); }
+    .amt { text-align: right; flex-shrink: 0; }
+    .amt .val { font-weight: 800; font-size: 15px; }
+    .amt .bal { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .amt .bal.neg { color: var(--pink); }
+    .pos { color: var(--green); }
+    .neg-txt { color: var(--pink); }
+    .blue-txt { color: var(--blue); }
+
+    .empty { color: var(--muted); font-size: 15px; padding: 6px 0; }
+
+    /* Manage item rows */
+    .item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      background: var(--surface); border-radius: var(--radius-sm); box-shadow: var(--shadow);
+      margin-bottom: 10px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .item .name { font-weight: 600; font-size: 15px; }
+    .item .meta { font-size: 12px; color: var(--text-2); }
+    .item .money { font-weight: 800; font-size: 15px; }
+    .del {
+      border: none; background: transparent; color: var(--muted); cursor: pointer;
+      font-size: 18px; padding: 4px 6px; line-height: 1;
+    }
+    .del:hover { color: var(--pink); }
+
+    /* Forms */
+    .form { background: var(--surface-2); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px; }
+    .form .line { display: flex; gap: 8px; flex-wrap: wrap; }
+    input[type="text"], input[type="number"], input[type="date"], select {
+      font-family: inherit; font-size: 15px; color: var(--text);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 11px 12px; outline: none; min-width: 0;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    .f-name { flex: 1; }
+    .f-amt { width: 110px; }
+    .f-cadence { flex: 1; }
+    .f-date { flex: 1; }
+    label.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-2); font-weight: 600; }
+    .form .grid2 { display: flex; gap: 8px; margin-top: 8px; }
+    .form .grid2 > * { flex: 1; }
+    .btn {
+      border: none; border-radius: 999px; cursor: pointer; font-family: inherit;
+      font-size: 15px; font-weight: 700; padding: 12px 16px; color: var(--on-primary);
+      background: var(--primary); box-shadow: var(--shadow); width: 100%; margin-top: 10px;
+    }
+    .btn:disabled { opacity: 0.5; box-shadow: none; cursor: default; }
+    .btn.green { background: var(--green); }
+    .btn.pink { background: var(--pink); }
+    .btn.blue { background: var(--blue); }
+    .btn.ghost { background: var(--surface); color: var(--text-2); box-shadow: none; border: 1px solid var(--border); }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-row .btn { margin-top: 0; }
+
+    .savings-head { display: flex; align-items: center; gap: 12px; }
+    .savings-head .grow .title { font-weight: 700; font-size: 15px; }
+    .savings-head .grow .sub { font-size: 12px; color: var(--text-2); }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 22px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Budget</h1>
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle light or dark theme">🌙</button>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-overview" aria-selected="true">Overview</button>
+      <button role="tab" id="tab-manage" aria-selected="false">Manage</button>
+    </div>
+
+    <!-- OVERVIEW -->
+    <section id="view-overview" class="stack">
+      <div class="card hero">
+        <div class="eyebrow"><span>IN THE ACCOUNT</span><span class="tag">AUD</span></div>
+        <button class="amount" id="balanceDisplay" type="button" aria-label="Account balance, tap to edit"></button>
+        <input class="amount hidden" id="balanceInput" type="number" step="0.01" inputmode="decimal" aria-label="Edit account balance" />
+        <div class="asof" id="balanceAsOf">Updated today</div>
+      </div>
+
+      <div class="card commentary" id="commentary">
+        <p class="head" id="commentaryHead"></p>
+        <p class="body" id="commentaryBody"></p>
+      </div>
+
+      <div>
+        <div class="section-label"><span>Upcoming</span></div>
+        <div class="card upcoming" id="upcoming"></div>
+      </div>
+    </section>
+
+    <!-- MANAGE -->
+    <section id="view-manage" class="hidden">
+      <div class="section-label"><span>Income</span><span id="incomeTotal"></span></div>
+      <div id="incomeList"></div>
+      <div class="form">
+        <div class="line">
+          <input class="f-name" id="inc-name" type="text" placeholder="Income (e.g. Pay)" />
+          <input class="f-amt" id="inc-amt" type="number" step="0.01" min="0" inputmode="decimal" placeholder="$0" />
+        </div>
+        <div class="grid2">
+          <label class="field">How often
+            <select class="f-cadence" id="inc-cadence">
+              <option value="weekly">Weekly</option>
+              <option value="fortnightly" selected>Fortnightly</option>
+              <option value="monthly">Monthly</option>
+              <option value="once">One-off</option>
+            </select>
+          </label>
+          <label class="field">Next one
+            <input class="f-date" id="inc-date" type="date" />
+          </label>
+        </div>
+        <button class="btn green" id="inc-add">Add income</button>
+      </div>
+
+      <div class="section-label" style="margin-top:22px"><span>Bills</span><span id="billsTotal"></span></div>
+      <div id="billsList"></div>
+      <div class="form">
+        <div class="line">
+          <input class="f-name" id="bill-name" type="text" placeholder="Bill name (e.g. Rent)" />
+          <input class="f-amt" id="bill-amt" type="number" step="0.01" min="0" inputmode="decimal" placeholder="$0" />
+        </div>
+        <div class="grid2">
+          <label class="field">How often
+            <select class="f-cadence" id="bill-cadence">
+              <option value="weekly">Weekly</option>
+              <option value="fortnightly">Fortnightly</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="once">One-off</option>
+            </select>
+          </label>
+          <label class="field">Next due
+            <input class="f-date" id="bill-date" type="date" />
+          </label>
+        </div>
+        <button class="btn pink" id="bill-add">Add bill</button>
+      </div>
+
+      <div class="section-label" style="margin-top:22px"><span>Savings</span></div>
+      <div class="card">
+        <div class="savings-head">
+          <div class="chip" style="background:var(--blue);color:#fff">🐷</div>
+          <div class="grow">
+            <div class="title">Savings per fortnight</div>
+            <div class="sub" id="savingsSub">Not set — put money aside automatically</div>
+          </div>
+        </div>
+        <div class="grid2" style="margin-top:14px">
+          <label class="field">Amount / fortnight
+            <input id="sav-amt" type="number" step="0.01" min="0" inputmode="decimal" placeholder="$0" />
+          </label>
+          <label class="field">First contribution
+            <input id="sav-date" type="date" />
+          </label>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" id="sav-off">Turn off</button>
+          <button class="btn blue" id="sav-save">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot">Everything stays on this device. Amounts in AUD.</div>
+  </div>
+
+  <script>
+    'use strict';
+    const DAY = 86400000;
+    const STORE_KEY = 'standalone-budget-v1';
+    const THEME_KEY = 'standalone-budget-theme';
+
+    /* ---------- state ---------- */
+    const defaultState = () => ({
+      balance: 0,
+      balanceUpdatedAt: startOfDay(Date.now()),
+      income: [],
+      bills: [],
+      savingsPerFortnight: 0,
+      savingsAnchor: startOfDay(Date.now()),
+    });
+
+    let state = load();
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return defaultState();
+        return Object.assign(defaultState(), JSON.parse(raw));
+      } catch (e) { return defaultState(); }
+    }
+    function save() {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    /* ---------- date + money helpers ---------- */
+    function startOfDay(input) {
+      const d = new Date(input);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    }
+    function toISO(ms) {
+      const d = new Date(ms);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    function fromISO(str) {
+      const [y, m, d] = str.split('-').map(Number);
+      return new Date(y, m - 1, d).getTime();
+    }
+    function formatMoney(value) {
+      const neg = value < 0;
+      const cents = Math.round(Math.abs(value) * 100);
+      const dollars = Math.floor(cents / 100);
+      const rem = cents % 100;
+      const grouped = String(dollars).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return `${neg ? '-' : ''}$${grouped}.${String(rem).padStart(2, '0')}`;
+    }
+    function formatShortDate(ms, now) {
+      const today = startOfDay(now == null ? Date.now() : now);
+      const target = startOfDay(ms);
+      const diff = Math.round((target - today) / DAY);
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Tomorrow';
+      if (diff === -1) return 'Yesterday';
+      return new Date(target).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+    function parseMoney(text) {
+      const cleaned = String(text).replace(/[^0-9.]/g, '');
+      if (!cleaned) return null;
+      const v = parseFloat(cleaned);
+      if (!isFinite(v) || v < 0) return null;
+      return Math.round(v * 100) / 100;
+    }
+
+    /* ---------- projection engine ---------- */
+    function occurrencesBetween(item, from, to) {
+      const out = [];
+      const anchor = startOfDay(item.anchorDate);
+      if (item.cadence === 'once') {
+        if (anchor >= from && anchor <= to) out.push(anchor);
+        return out;
+      }
+      if (item.cadence === 'weekly' || item.cadence === 'fortnightly') {
+        const step = (item.cadence === 'weekly' ? 7 : 14) * DAY;
+        let t = anchor;
+        if (t < from) t += Math.ceil((from - t) / step) * step;
+        for (; t <= to; t += step) out.push(t);
+        return out;
+      }
+      // monthly: same day-of-month, clamped to each month's length
+      const dom = new Date(anchor).getDate();
+      const cur = new Date(from); cur.setDate(1); cur.setHours(0, 0, 0, 0);
+      while (cur.getTime() <= to) {
+        const y = cur.getFullYear(), m = cur.getMonth();
+        const last = new Date(y, m + 1, 0).getDate();
+        const occ = new Date(y, m, Math.min(dom, last)).getTime();
+        if (occ >= from && occ <= to && occ >= anchor) out.push(occ);
+        cur.setMonth(cur.getMonth() + 1);
+      }
+      return out;
+    }
+
+    function buildTimeline(from, to) {
+      const pending = [];
+      state.income.forEach((inc) => occurrencesBetween(inc, from, to).forEach((date) =>
+        pending.push({ date, label: inc.name, amount: inc.amount, kind: 'income' })));
+      state.bills.forEach((bill) => occurrencesBetween(bill, from, to).forEach((date) =>
+        pending.push({ date, label: bill.name, amount: -bill.amount, kind: 'bill' })));
+      if (state.savingsPerFortnight > 0) {
+        occurrencesBetween({ cadence: 'fortnightly', anchorDate: state.savingsAnchor }, from, to)
+          .forEach((date) => pending.push({ date, label: 'Into savings', amount: -state.savingsPerFortnight, kind: 'savings' }));
+      }
+      const rank = { income: 0, bill: 1, savings: 2 };
+      pending.sort((a, b) => a.date - b.date || rank[a.kind] - rank[b.kind]);
+      let running = state.balance;
+      return pending.map((e) => { running += e.amount; return Object.assign({}, e, { balanceAfter: running }); });
+    }
+
+    function buildCommentary(now) {
+      const from = startOfDay(now);
+      const timeline = buildTimeline(from, from + 30 * DAY);
+      if (state.income.length === 0 && state.bills.length === 0) {
+        return { tone: 'good', head: 'Let’s set things up', body: 'Add your income and bills in Manage, and I’ll show where your balance is heading.' };
+      }
+      let low = state.balance, lowDate = from;
+      timeline.forEach((e) => { if (e.balanceAfter < low) { low = e.balanceAfter; lowDate = e.date; } });
+      const nextIncome = timeline.find((e) => e.kind === 'income');
+      const incLine = nextIncome ? ` Next in: ${nextIncome.label}, ${formatMoney(nextIncome.amount)} on ${formatShortDate(nextIncome.date, now)}.` : '';
+      const bal = formatMoney(state.balance);
+      if (low < 0) {
+        return { tone: 'warn', head: `${bal} now`, body: `Heads up — around ${formatShortDate(lowDate, now)} your balance dips into the red at ${formatMoney(low)}. Might be worth shifting a bill or topping up before then.${incLine}` };
+      }
+      const threshold = Math.max(50, state.savingsPerFortnight);
+      if (low < threshold) {
+        return { tone: 'tight', head: `${bal} now`, body: `It gets a little tight around ${formatShortDate(lowDate, now)} (down to ${formatMoney(low)}), but you stay above zero.${incLine}` };
+      }
+      return { tone: 'good', head: `${bal} now`, body: `You’re comfortable — the lowest you dip over the next month is ${formatMoney(low)} around ${formatShortDate(lowDate, now)}.${incLine}` };
+    }
+
+    /* ---------- rendering ---------- */
+    function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+    function cadenceLabel(c) {
+      return { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', once: 'One-off' }[c] || c;
+    }
+    function nextOccurrence(item) {
+      const today = startOfDay(Date.now());
+      return occurrencesBetween(item, today, today + 400 * DAY)[0];
+    }
+
+    function renderOverview() {
+      const disp = document.getElementById('balanceDisplay');
+      if (state.balance !== 0) {
+        disp.textContent = formatMoney(state.balance);
+        disp.classList.remove('empty');
+      } else {
+        disp.textContent = 'Tap to set balance';
+        disp.classList.add('empty');
+      }
+      document.getElementById('balanceAsOf').textContent = 'Updated ' + formatShortDate(state.balanceUpdatedAt).toLowerCase();
+
+      const c = buildCommentary(Date.now());
+      const cEl = document.getElementById('commentary');
+      cEl.className = 'card commentary ' + c.tone;
+      document.getElementById('commentaryHead').textContent = c.head;
+      document.getElementById('commentaryBody').textContent = c.body;
+
+      const from = startOfDay(Date.now());
+      const events = buildTimeline(from, from + 60 * DAY).slice(0, 14);
+      const up = document.getElementById('upcoming');
+      if (events.length === 0) {
+        up.innerHTML = '<div class="empty">Nothing scheduled yet. Add income and bills in Manage and they’ll line up here.</div>';
+        return;
+      }
+      up.innerHTML = events.map((e) => {
+        const icon = e.kind === 'income' ? '↗️' : e.kind === 'savings' ? '🐷' : '↘️';
+        const cls = e.kind === 'income' ? 'pos' : e.kind === 'savings' ? 'blue-txt' : 'neg-txt';
+        const sign = e.amount >= 0 ? '+' : '';
+        const balNeg = e.balanceAfter < 0 ? ' neg' : '';
+        return `<div class="row">
+          <div class="chip">${icon}</div>
+          <div class="grow">
+            <div class="label">${esc(e.label)}</div>
+            <div class="sub">${formatShortDate(e.date)}</div>
+          </div>
+          <div class="amt">
+            <div class="val ${cls}">${sign}${formatMoney(e.amount)}</div>
+            <div class="bal${balNeg}">${formatMoney(e.balanceAfter)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderItemList(elId, items, kind) {
+      const el = document.getElementById(elId);
+      const color = kind === 'bill' ? 'var(--pink)' : 'var(--green)';
+      el.innerHTML = items.map((it) => {
+        const next = nextOccurrence(it);
+        const meta = it.cadence === 'once'
+          ? (next != null ? formatShortDate(next) : 'Passed')
+          : `${cadenceLabel(it.cadence)}${next != null ? ' · next ' + formatShortDate(next) : ''}`;
+        const sign = kind === 'bill' ? '-' : '+';
+        return `<div class="item">
+          <span class="dot" style="background:${color}"></span>
+          <div class="grow">
+            <div class="name">${esc(it.name)}</div>
+            <div class="meta">${meta}</div>
+          </div>
+          <div class="money" style="color:${color}">${sign}${formatMoney(it.amount)}</div>
+          <button class="del" data-del="${kind}" data-id="${it.id}" aria-label="Remove ${esc(it.name)}">×</button>
+        </div>`;
+      }).join('');
+    }
+
+    function renderManage() {
+      renderItemList('incomeList', state.income, 'income');
+      renderItemList('billsList', state.bills, 'bill');
+      const incTotal = state.income.reduce((s, i) => s + i.amount, 0);
+      const billTotal = state.bills.reduce((s, b) => s + b.amount, 0);
+      document.getElementById('incomeTotal').textContent = state.income.length ? `${state.income.length} · ${formatMoney(incTotal)}` : '';
+      document.getElementById('billsTotal').textContent = state.bills.length ? `${state.bills.length} · ${formatMoney(billTotal)}` : '';
+      const sub = document.getElementById('savingsSub');
+      if (state.savingsPerFortnight > 0) {
+        sub.textContent = `${formatMoney(state.savingsPerFortnight)} set aside · next ${formatShortDate(state.savingsAnchor)}`;
+      } else {
+        sub.textContent = 'Not set — put money aside automatically';
+      }
+    }
+
+    function renderAll() { renderOverview(); renderManage(); save(); }
+
+    /* ---------- events ---------- */
+    let nextId = 0;
+    function makeId() { nextId += 1; return Date.now() + '-' + nextId; }
+
+    // Tabs
+    function selectTab(which) {
+      const overview = which === 'overview';
+      document.getElementById('tab-overview').setAttribute('aria-selected', overview);
+      document.getElementById('tab-manage').setAttribute('aria-selected', !overview);
+      document.getElementById('view-overview').classList.toggle('hidden', !overview);
+      document.getElementById('view-manage').classList.toggle('hidden', overview);
+    }
+    document.getElementById('tab-overview').addEventListener('click', () => selectTab('overview'));
+    document.getElementById('tab-manage').addEventListener('click', () => selectTab('manage'));
+
+    // Balance: formatted display that swaps to a number input on tap
+    const balDisplay = document.getElementById('balanceDisplay');
+    const balInput = document.getElementById('balanceInput');
+    balDisplay.addEventListener('click', () => {
+      balInput.value = state.balance ? state.balance : '';
+      balDisplay.classList.add('hidden');
+      balInput.classList.remove('hidden');
+      balInput.focus();
+    });
+    function commitBalance() {
+      const v = parseMoney(balInput.value);
+      state.balance = v == null ? 0 : v;
+      state.balanceUpdatedAt = Date.now();
+      balInput.classList.add('hidden');
+      balDisplay.classList.remove('hidden');
+      renderAll();
+    }
+    balInput.addEventListener('blur', commitBalance);
+    balInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); balInput.blur(); } });
+
+    // Add income / bill
+    function addItem(kind) {
+      const p = kind === 'income' ? 'inc' : 'bill';
+      const name = document.getElementById(`${p}-name`).value.trim();
+      const amount = parseMoney(document.getElementById(`${p}-amt`).value);
+      const cadence = document.getElementById(`${p}-cadence`).value;
+      const dateStr = document.getElementById(`${p}-date`).value;
+      if (!name || amount == null || amount <= 0 || !dateStr) return;
+      const item = { id: makeId(), name, amount, cadence, anchorDate: fromISO(dateStr) };
+      (kind === 'income' ? state.income : state.bills).push(item);
+      document.getElementById(`${p}-name`).value = '';
+      document.getElementById(`${p}-amt`).value = '';
+      document.getElementById(`${p}-date`).value = toISO(startOfDay(Date.now()));
+      renderAll();
+    }
+    document.getElementById('inc-add').addEventListener('click', () => addItem('income'));
+    document.getElementById('bill-add').addEventListener('click', () => addItem('bill'));
+
+    // Delete (event delegation)
+    document.getElementById('view-manage').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-del]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      if (btn.getAttribute('data-del') === 'bill') state.bills = state.bills.filter((b) => b.id !== id);
+      else state.income = state.income.filter((i) => i.id !== id);
+      renderAll();
+    });
+
+    // Savings
+    document.getElementById('sav-save').addEventListener('click', () => {
+      const amt = parseMoney(document.getElementById('sav-amt').value) || 0;
+      const dateStr = document.getElementById('sav-date').value;
+      state.savingsPerFortnight = amt;
+      if (dateStr) state.savingsAnchor = fromISO(dateStr);
+      renderAll();
+    });
+    document.getElementById('sav-off').addEventListener('click', () => {
+      state.savingsPerFortnight = 0;
+      document.getElementById('sav-amt').value = '';
+      renderAll();
+    });
+
+    // Theme toggle
+    function applyTheme(mode) {
+      if (mode === 'system') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', mode);
+      const dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.getElementById('themeToggle').textContent = dark ? '☀️' : '🌙';
+    }
+    let themeMode = localStorage.getItem(THEME_KEY) || 'system';
+    applyTheme(themeMode);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+        || (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      themeMode = isDark ? 'light' : 'dark';
+      localStorage.setItem(THEME_KEY, themeMode);
+      applyTheme(themeMode);
+    });
+
+    /* ---------- init ---------- */
+    const todayISO = toISO(startOfDay(Date.now()));
+    document.getElementById('inc-date').value = todayISO;
+    document.getElementById('bill-date').value = todayISO;
+    document.getElementById('sav-date').value = state.savingsAnchor ? toISO(state.savingsAnchor) : todayISO;
+    if (state.savingsPerFortnight > 0) document.getElementById('sav-amt').value = state.savingsPerFortnight;
+    renderAll();
+  </script>
+</body>
+</html>
