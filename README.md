@@ -4,7 +4,7 @@ A small, self-contained budgeting app in a single HTML file. Track your bills
 and income with their dates, set aside savings each fortnight, and see a running
 read on your account balance plus a preview of what's coming up.
 
-**Live:** _add your GitHub Pages URL here once it's published_
+**Live:** https://felixgeekfox.github.io/budget/
 
 ## Features
 
